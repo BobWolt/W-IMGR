@@ -5,14 +5,13 @@ import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	plugins: [
-		react(),
-		tailwindcss(),
-		cssInjectedByJsPlugin({ topExecutionPriority: false }),
-	],
+	plugins: [react(), tailwindcss(), cssInjectedByJsPlugin()],
 	css: {
 		postcss: {
 			plugins: [tailwindcss],
+		},
+		build: {
+			cssCodeSplit: false,
 		},
 	},
 });
