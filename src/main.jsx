@@ -9,6 +9,7 @@ console.log(widgetRoot);
 
 //const rootElement = document.querySelector('body');
 const rootElement = document.getElementById('w-imgr-container');
+//const root = ReactDOM.createRoot(rootElement);
 const root = ReactDOM.createRoot(rootElement);
 
 /* const rootEl = document.createElement('div');
@@ -25,7 +26,7 @@ root.render(
 		<React.StrictMode>
 			<App />
 		</React.StrictMode>,
-		document.body
+		rootElement
 	)
 );
 

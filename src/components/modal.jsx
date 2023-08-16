@@ -22,6 +22,9 @@ export default function Modal(props) {
 
 	const openModal = function (e) {
 		console.log('opening modal');
+		const wimgrContainer = document.getElementById('w-imgr-container');
+
+		wimgrContainer.style.display = 'block';
 	};
 
 	useEffect(() => {
