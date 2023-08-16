@@ -4,7 +4,7 @@ import Modal from './components/modal';
 
 function App() {
 	return (
-		<>
+		<div>
 			<input
 				className='w-screen'
 				placeholder='input here'
@@ -14,7 +14,7 @@ function App() {
 			<div className='w-full h-screen bg-black/25 flex flex-row items-center justify-center'>
 				<Modal />
 			</div>
-		</>
+		</div>
 	);
 }
 
