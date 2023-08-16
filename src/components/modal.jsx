@@ -7,12 +7,15 @@ export default function Modal(props) {
 
 	const [selectedImg, setSelectedImg] = useState(null);
 	const [imagesDisplayed, setImagesDisplayed] = useState(false);
+	const [isQuery, setIsQuery] = useState(false);
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [page, setPage] = useState(1);
 	const [noMoreImages, setNoMoreImages] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
+
+	const [modalIsOpen, setModalIsOpen] = useState(false);
 
 	const inputRef = useRef();
 	const chooseBtnRef = useRef();
@@ -21,10 +24,29 @@ export default function Modal(props) {
 	const observerTargetRoot = useRef();
 
 	const openModal = function (e) {
-		console.log('opening modal');
+		setModalIsOpen(true);
 		const wimgrContainer = document.getElementById('w-imgr-container');
 
 		wimgrContainer.style.display = 'block';
+		wimgrContainer.style.position = 'absolute';
+		wimgrContainer.style.width = '100%';
+	};
+
+	const closeModal = function (e) {
+		setIsLoading(false);
+		setError(null);
+		setPage(1);
+		setLoadedImages([]);
+		setNoMoreImages(false);
+		setModalIsOpen(false);
+		setIsQuery(false);
+		setImagesDisplayed(false);
+		setSelectedImg(false);
+
+		inputRef.current.value = null;
+		const wimgrContainer = document.getElementById('w-imgr-container');
+
+		wimgrContainer.style.display = 'none';
 	};
 
 	useEffect(() => {
@@ -43,6 +65,7 @@ export default function Modal(props) {
 			try {
 				const query = inputRef.current.value;
 				console.log(query);
+				setIsQuery(true);
 
 				let images = await fetch(`${proxy}/api/unsplash`, {
 					method: 'GET',
@@ -62,8 +85,6 @@ export default function Modal(props) {
 				} else {
 					setError('No results for your search, try something else.');
 				}
-
-				//setLoadedImages(res.results);
 
 				console.log('page updated?', page);
 			} catch (error) {
@@ -112,17 +133,19 @@ export default function Modal(props) {
 
 		const inputfield = document.getElementById('w-imgr-input-field');
 		inputfield.value = url;
+
+		closeModal();
 	};
 
 	const loadMore = useCallback(
 		(entries) => {
-			if (entries[0].isIntersecting) {
+			if (entries[0].isIntersecting && isQuery) {
 				console.log('Is intersecting alright!!!!');
 				getMoreImages();
 				setPage((prevPage) => prevPage + 1);
 			}
 		},
-		[page]
+		[page, isQuery]
 	);
 
 	useEffect(() => {
@@ -150,10 +173,17 @@ export default function Modal(props) {
 	}, [imagesDisplayed, observerTarget, loadMore, isLoading, noMoreImages]);
 
 	return (
-		<div className='relative flex flex-col gap-8 w-96 p-4 bg-white rounded-xl shadow-lg'>
+		<div
+			className={
+				modalIsOpen
+					? 'relative flex flex-col gap-8 w-96 p-4 bg-white rounded-xl shadow-lg animate-[wiggle_0.3s_ease-out_1]'
+					: ''
+			}
+		>
 			<div className='w-full flex flex-row items-center justify-between'>
 				<h3 className='text-black text-xl'>Search for an image</h3>
 				<svg
+					onClick={closeModal}
 					xmlns='http://www.w3.org/2000/svg'
 					fill='none'
 					viewBox='0 0 24 24'
@@ -259,14 +289,22 @@ export default function Modal(props) {
 						</span>
 					</div>
 					<div className='flex flex-row gap-2 items-center justify-end'>
-						<button className='text-sm py-1 px-2 border-[1px] border-black/25 rounded-lg'>
+						<button
+							className='text-sm py-1 px-2 border-[1px] border-black/25 rounded-lg'
+							onClick={closeModal}
+						>
 							Cancel
 						</button>
 						<button
 							ref={chooseBtnRef}
 							onClick={chooseImage}
 							data-url=''
-							className='text-sm text-white py-1 px-2 bg-purple border-black/25 rounded-lg'
+							disabled={selectedImg ? false : true}
+							className={
+								selectedImg
+									? 'text-sm text-white py-1 px-2 bg-purple border-black/25 rounded-lg'
+									: 'text-sm text-black py-1 px-2 bg-white border-black rounded-lg cursor-not-allowed'
+							}
 						>
 							Choose image
 						</button>

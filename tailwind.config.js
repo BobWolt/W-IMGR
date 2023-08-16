@@ -6,6 +6,12 @@ export default {
 			colors: {
 				purple: '#5832e9',
 			},
+			keyframes: {
+				wiggle: {
+					from: { transform: 'translateY(50px)' },
+					to: { transform: 'translateY(0px)' },
+				},
+			},
 		},
 	},
 	plugins: [],

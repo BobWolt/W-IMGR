@@ -1,15 +1,14 @@
-import { useState } from 'react';
 import './App.css';
 import Modal from './components/modal';
 
 function App() {
 	return (
 		<>
-			<input
+			{/* <input
 				className='w-screen'
 				placeholder='input here'
 				id='w-imgr-input-field'
-			></input>
+			></input> */}
 			{/* <button id='w-imgr-open-modal-btn'>Open WIMGR</button> */}
 			<div className='w-full h-screen bg-black/25 flex flex-row items-center justify-center'>
 				<Modal />
