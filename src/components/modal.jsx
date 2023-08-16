@@ -54,6 +54,13 @@ export default function Modal(props) {
 		openBtn.addEventListener('click', openModal);
 	}, []);
 
+	useEffect(() => {
+		console.log(props);
+		if (props.modalClose) {
+			closeModal();
+		}
+	}, [props]);
+
 	const getImages = async function (e) {
 		if (e.key === 'Enter') {
 			setIsLoading(true);
