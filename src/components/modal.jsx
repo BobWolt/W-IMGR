@@ -30,6 +30,8 @@ export default function Modal(props) {
 		wimgrContainer.style.display = 'block';
 		wimgrContainer.style.position = 'absolute';
 		wimgrContainer.style.width = '100%';
+
+		inputRef.current.focus();
 	};
 
 	const closeModal = function (e) {
@@ -53,13 +55,6 @@ export default function Modal(props) {
 		const openBtn = document.getElementById('w-imgr-open-modal-btn');
 		openBtn.addEventListener('click', openModal);
 	}, []);
-
-	useEffect(() => {
-		console.log(props);
-		if (props.modalClose) {
-			closeModal();
-		}
-	}, [props]);
 
 	const getImages = async function (e) {
 		if (e.key === 'Enter') {
@@ -207,7 +202,7 @@ export default function Modal(props) {
 					ref={inputRef}
 					placeholder='e.g. Mountain ranges'
 					type='text'
-					className='bg-white text-black w-full h-12 border-b-[1px] border-purple focus:outline-none '
+					className='bg-white text-black w-full h-12 border-b-[1px] border-purple focus:outline-none'
 					autoFocus
 					onKeyDown={getImages}
 				/>
@@ -233,7 +228,7 @@ export default function Modal(props) {
 									id={img.id}
 									className={
 										selectedImg === img.id
-											? 'w-full h-full object-cover rounded opacity-75 border-[2px] border-purple'
+											? 'w-full h-full object-cover rounded opacity-75 border-solid border-[2px] border-purple'
 											: 'w-full h-full object-cover rounded'
 									}
 								/>
@@ -297,7 +292,7 @@ export default function Modal(props) {
 					</div>
 					<div className='flex flex-row gap-2 items-center justify-end'>
 						<button
-							className='text-sm py-1 px-2 border-[1px] border-black/25 rounded-lg'
+							className='text-sm py-1 px-2 border-solid border-[1px] border-black/25 rounded-lg'
 							onClick={closeModal}
 						>
 							Cancel
@@ -310,7 +305,7 @@ export default function Modal(props) {
 							className={
 								selectedImg
 									? 'text-sm text-white py-1 px-2 bg-purple border-black/25 rounded-lg'
-									: 'text-sm text-black py-1 px-2 bg-white border-black rounded-lg cursor-not-allowed'
+									: 'text-sm text-white py-1 px-2 bg-purple/25 rounded-lg cursor-not-allowed'
 							}
 						>
 							Choose image
