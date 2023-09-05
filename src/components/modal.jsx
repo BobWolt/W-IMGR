@@ -3,6 +3,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 export default function Modal(props) {
 	const proxy = 'http://localhost:8000';
 
+	const apiKey = document
+		?.querySelector('script[data-id="w-imgr-script"][data-api-key]')
+		?.getAttribute('data-api-key');
+
 	const [loadedImages, setLoadedImages] = useState([]);
 
 	const [selectedImg, setSelectedImg] = useState(null);
@@ -11,11 +15,12 @@ export default function Modal(props) {
 
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [errorCode, setErrorCode] = useState(null);
 	const [page, setPage] = useState(1);
 	const [noMoreImages, setNoMoreImages] = useState(false);
 	const [isHovered, setIsHovered] = useState(false);
-
 	const [modalIsOpen, setModalIsOpen] = useState(false);
+	const [orientation, setOrientation] = useState('landscape');
 
 	const inputRef = useRef();
 	const chooseBtnRef = useRef();
@@ -29,6 +34,8 @@ export default function Modal(props) {
 
 		wimgrContainer.style.display = 'block';
 		wimgrContainer.style.position = 'absolute';
+		wimgrContainer.style.top = '0';
+		wimgrContainer.style.left = '0';
 		wimgrContainer.style.width = '100%';
 
 		inputRef.current.focus();
@@ -56,39 +63,75 @@ export default function Modal(props) {
 		openBtn.addEventListener('click', openModal);
 	}, []);
 
+	// Remove button clicked - remove url from inputfield and img src
+	useEffect(() => {
+		const removeBtn = document.getElementById('w-imgr-remove-btn');
+		removeBtn.addEventListener('click', () => {
+			const inputfield = document.getElementById('w-imgr-input-field');
+			inputfield.value = '';
+
+			const previewImage = document.getElementById('w-imgr-preview-image');
+			if (previewImage) {
+				previewImage.src = '';
+			}
+		});
+	}, []);
+
+	const handleResponse = async function (res) {
+		if (res.status === 200) {
+			let images = await res.json();
+			if (images.results.length !== 0) {
+				// Request approved and has images
+				setLoadedImages((prevItems) => [...prevItems, ...images.results]);
+				setPage((prevPage) => prevPage + 1);
+				setImagesDisplayed(true);
+			} else {
+				// Request approved and has no images for search query
+				setError('No results for your search, try something else.');
+			}
+		} else if (res.status === 204) {
+			// No images found for search
+			setError('No results for your search, try something else.');
+			setErrorCode(204);
+		} else if (res.status === 401) {
+			// Auth fail
+			setError(
+				'An API-Key is required to use W-IMGR. Please check if your key is present.'
+			);
+		} else if (res.status === 429) {
+			setError('Too many requests. Your limit will reset in a minute.');
+			setErrorCode(429);
+		} else if (res.status === 500) {
+			setError('Internal server error. Something went wrong.');
+		} else {
+			setError('Something went wrong.');
+		}
+	};
+
 	const getImages = async function (e) {
-		if (e.key === 'Enter') {
+		if (e.key === 'Enter' || e.type === 'click') {
 			setIsLoading(true);
 			setError(null);
+			setErrorCode(null);
 			setPage(1);
 			setLoadedImages([]);
 			setNoMoreImages(false);
 
 			try {
 				const query = inputRef.current.value;
-				console.log(query);
 				setIsQuery(true);
 
-				let images = await fetch(`${proxy}/api/unsplash`, {
+				let res = await fetch(`${proxy}/api/unsplash`, {
 					method: 'GET',
-					headers: { query: query, page: page },
+					headers: {
+						query: query,
+						page: 1,
+						orientation: orientation,
+						authorization: apiKey,
+					},
 				});
 
-				let res = await images.json();
-
-				console.log(res);
-
-				if (res.results.length !== 0) {
-					setLoadedImages((prevItems) => [...prevItems, ...res.results]);
-					setPage((prevPage) => prevPage + 1);
-					setImagesDisplayed(true);
-
-					console.log(res.results);
-				} else {
-					setError('No results for your search, try something else.');
-				}
-
-				console.log('page updated?', page);
+				await handleResponse(res);
 			} catch (error) {
 				setError(error);
 			} finally {
@@ -102,19 +145,17 @@ export default function Modal(props) {
 		setError(null);
 
 		try {
-			let images = await fetch(`${proxy}/api/unsplash`, {
+			let res = await fetch(`${proxy}/api/unsplash`, {
 				method: 'GET',
-				headers: { query: inputRef.current.value, page: page },
+				headers: {
+					query: inputRef.current.value,
+					page: page,
+					orientation: orientation,
+					authorization: apiKey,
+				},
 			});
 
-			let res = await images.json();
-
-			if (res.results.length) {
-				setLoadedImages((prevItems) => [...prevItems, ...res.results]);
-			} else {
-				setError('No more images available for this search');
-				setNoMoreImages(true);
-			}
+			await handleResponse(res);
 		} catch (error) {
 			setError(error);
 		} finally {
@@ -136,19 +177,43 @@ export default function Modal(props) {
 		const inputfield = document.getElementById('w-imgr-input-field');
 		inputfield.value = url;
 
+		const previewImage = document.getElementById('w-imgr-preview-image');
+		if (previewImage) {
+			previewImage.src = url;
+		}
+
 		closeModal();
 	};
+
+	const handleOrientation = function (e) {
+		setOrientation(e.target.getAttribute('data-orientation'));
+	};
+
+	useEffect(() => {
+		if (orientation && isQuery) {
+			getImages({ type: 'click' });
+		}
+	}, [orientation, isQuery]);
 
 	const loadMore = useCallback(
 		(entries) => {
 			if (entries[0].isIntersecting && isQuery) {
-				console.log('Is intersecting alright!!!!');
+				//console.log('Is intersecting');
 				getMoreImages();
 				setPage((prevPage) => prevPage + 1);
 			}
 		},
 		[page, isQuery]
 	);
+
+	// Stop observer when error 429 too many requests has been received
+	useEffect(() => {
+		if (errorCode === 429) {
+			setTimeout(() => {
+				setErrorCode(null);
+			}, 60000);
+		}
+	}, [errorCode]);
 
 	useEffect(() => {
 		const container = observerTargetRoot.current;
@@ -162,7 +227,9 @@ export default function Modal(props) {
 			observerTarget &&
 			observerTarget.current &&
 			imagesDisplayed &&
-			!noMoreImages
+			!noMoreImages &&
+			errorCode !== 429 &&
+			errorCode !== 204
 		) {
 			observer.observe(observerTarget.current);
 		}
@@ -172,7 +239,14 @@ export default function Modal(props) {
 				observer.unobserve(observerTarget.current);
 			}
 		};
-	}, [imagesDisplayed, observerTarget, loadMore, isLoading, noMoreImages]);
+	}, [
+		imagesDisplayed,
+		observerTarget,
+		loadMore,
+		isLoading,
+		noMoreImages,
+		errorCode,
+	]);
 
 	return (
 		<div
@@ -197,7 +271,7 @@ export default function Modal(props) {
 				</svg>
 			</div>
 
-			<div className='w-full'>
+			<div className='w-full flex flex-row gap-4 items-center'>
 				<input
 					ref={inputRef}
 					placeholder='e.g. Mountain ranges'
@@ -206,14 +280,67 @@ export default function Modal(props) {
 					autoFocus
 					onKeyDown={getImages}
 				/>
+				<div className='flex flex-row items-center'>
+					<div
+						className={
+							orientation === 'landscape'
+								? 'p-2 rounded-full bg-black/5 cursor-pointer'
+								: 'p-2 cursor-pointer'
+						}
+						data-orientation='landscape'
+						onClick={handleOrientation}
+					>
+						<svg
+							xmlns='http://www.w3.org/2000/svg'
+							width='24'
+							height='24'
+							viewBox='0 0 24 24'
+							stroke='#5832e9'
+							className='w-6 h-6 pointer-events-none'
+							stroke-width='2'
+							fill='none'
+						>
+							<rect width='20' height='12' x='2' y='6' rx='2' />
+						</svg>
+					</div>
+
+					<div
+						className={
+							orientation === 'portrait'
+								? 'p-2 rounded-full bg-black/5 cursor-pointer'
+								: 'p-2 cursor-pointer'
+						}
+						data-orientation='portrait'
+						onClick={handleOrientation}
+					>
+						<svg
+							xmlns='http://www.w3.org/2000/svg'
+							width='24'
+							height='24'
+							viewBox='0 0 24 24'
+							stroke='#5832e9'
+							className='w-6 h-6 pointer-events-none	'
+							stroke-width='2'
+							fill='none'
+						>
+							<rect width='12' height='20' x='6' y='2' rx='2' />
+						</svg>
+					</div>
+				</div>
 			</div>
 
 			<div className='w-full max-h-48 overflow-scroll' ref={observerTargetRoot}>
 				<div className='w-full flex flex-col items-center'>
-					<div className='w-full grid grid-cols-2 gap-2'>
+					<div
+						className={
+							orientation === 'landscape'
+								? 'w-full grid grid-cols-2 gap-2'
+								: 'w-full grid grid-cols-4 gap-2'
+						}
+					>
 						{loadedImages.map((img) => (
 							<div
-								className='relative w-full h-[5.5rem] cursor-pointer'
+								className={'relative w-full h-[5.5rem] cursor-pointer'}
 								onMouseEnter={(e) => {
 									setIsHovered(e.target.id);
 								}}
