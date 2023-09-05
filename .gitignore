@@ -8,9 +8,6 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-public
-src
-.index.html
 dist-ssr
 *.local
 
