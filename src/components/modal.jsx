@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 export default function Modal(props) {
-	const proxy = 'http://localhost:8000';
+	//const proxy = 'http://localhost:3000';
+	const proxy = 'https://www.w-imgr.com';
 
 	const apiKey = document
 		?.querySelector('script[data-id="w-imgr-script"][data-api-key]')
@@ -96,7 +97,7 @@ export default function Modal(props) {
 		} else if (res.status === 401) {
 			// Auth fail
 			setError(
-				'An API-Key is required to use W-IMGR. Please check if your key is present.'
+				'An API Key is required to use W-IMGR. Please check if your key is present.'
 			);
 		} else if (res.status === 429) {
 			setError('Too many requests. Your limit will reset in a minute.');
@@ -130,6 +131,8 @@ export default function Modal(props) {
 						authorization: apiKey,
 					},
 				});
+
+				console.log('RESPONSE', res);
 
 				await handleResponse(res);
 			} catch (error) {
@@ -263,7 +266,7 @@ export default function Modal(props) {
 					xmlns='http://www.w3.org/2000/svg'
 					fill='none'
 					viewBox='0 0 24 24'
-					stroke-width='1.5'
+					strokeWidth='1.5'
 					stroke='#5832e9'
 					className='w-6 h-6 cursor-pointer'
 				>
@@ -297,7 +300,7 @@ export default function Modal(props) {
 							viewBox='0 0 24 24'
 							stroke='#5832e9'
 							className='w-6 h-6 pointer-events-none'
-							stroke-width='2'
+							strokeWidth='2'
 							fill='none'
 						>
 							<rect width='20' height='12' x='2' y='6' rx='2' />
@@ -320,7 +323,7 @@ export default function Modal(props) {
 							viewBox='0 0 24 24'
 							stroke='#5832e9'
 							className='w-6 h-6 pointer-events-none	'
-							stroke-width='2'
+							strokeWidth='2'
 							fill='none'
 						>
 							<rect width='12' height='20' x='6' y='2' rx='2' />
@@ -389,7 +392,7 @@ export default function Modal(props) {
 							viewBox='0 0 24 24'
 							fill='none'
 							stroke='#5832e9'
-							stroke-width='2'
+							strokeWidth='2'
 							className='mt-2 animate-spin'
 						>
 							<path d='M21 12a9 9 0 1 1-6.219-8.56' />
