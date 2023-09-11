@@ -22,7 +22,6 @@ export default function Modal(props) {
 	const [isHovered, setIsHovered] = useState(false);
 	const [modalIsOpen, setModalIsOpen] = useState(false);
 	const [orientation, setOrientation] = useState('landscape');
-
 	const [isMobile, setIsMobile] = useState(false);
 
 	const inputRef = useRef();
@@ -39,15 +38,22 @@ export default function Modal(props) {
 		}
 	}, [isMobile]);
 
+	useEffect(() => {
+		console.log('LOADED IMAGES: ', loadedImages.length, loadedImages);
+	}, [loadedImages]);
+
 	const openModal = function (e) {
 		setModalIsOpen(true);
 		const wimgrContainer = document.getElementById('w-imgr-container');
 
 		wimgrContainer.style.display = 'block';
-		wimgrContainer.style.position = 'absolute';
+		wimgrContainer.style.position = 'fixed';
 		wimgrContainer.style.top = '0';
 		wimgrContainer.style.left = '0';
 		wimgrContainer.style.width = '100%';
+		wimgrContainer.style.zIndex = '9999999';
+
+		document.getElementsByTagName('BODY')[0].style.overflow = 'hidden';
 
 		inputRef.current.focus();
 	};
@@ -67,6 +73,7 @@ export default function Modal(props) {
 		const wimgrContainer = document.getElementById('w-imgr-container');
 
 		wimgrContainer.style.display = 'none';
+		document.getElementsByTagName('BODY')[0].style.overflow = 'auto';
 	};
 
 	useEffect(() => {
@@ -89,6 +96,7 @@ export default function Modal(props) {
 	}, []);
 
 	const handleResponse = async function (res) {
+		console.log('Handling response');
 		if (res.status === 200) {
 			let images = await res.json();
 			if (images.results.length !== 0) {
@@ -96,6 +104,8 @@ export default function Modal(props) {
 				setLoadedImages((prevItems) => [...prevItems, ...images.results]);
 				setPage((prevPage) => prevPage + 1);
 				setImagesDisplayed(true);
+
+				console.log(images.results);
 			} else {
 				// Request approved and has no images for search query
 				setError('No results for your search, try something else.');
@@ -106,8 +116,9 @@ export default function Modal(props) {
 			setErrorCode(204);
 		} else if (res.status === 401) {
 			// Auth fail
+			console.log('fail!');
 			setError(
-				'An API Key is required to use W-IMGR. Please check if your key is present.'
+				'*An API-Key is required to use W-IMGR. Please check if your key is present.'
 			);
 		} else if (res.status === 429) {
 			setError('Too many requests. Your limit will reset in a minute.');
@@ -130,6 +141,7 @@ export default function Modal(props) {
 
 			try {
 				const query = inputRef.current.value;
+				console.log(query);
 				setIsQuery(true);
 
 				let res = await fetch(`${proxy}/api/unsplash`, {
@@ -204,7 +216,7 @@ export default function Modal(props) {
 		if (orientation && isQuery) {
 			getImages({ type: 'click' });
 		}
-	}, [orientation, isQuery]);
+	}, [orientation]);
 
 	const loadMore = useCallback(
 		(entries) => {
