@@ -385,9 +385,11 @@ export default function Modal(props) {
 								/>
 								<div
 									className={
-										isHovered === img.id
-											? 'absolute bottom-0 left-0 p-1'
-											: 'opacity-0'
+										!isMobile
+											? isHovered === img.id
+												? 'absolute bottom-0 left-0 p-1'
+												: 'opacity-0'
+											: 'absolute bottom-0 left-0 p-1'
 									}
 									id={img.id}
 								>
