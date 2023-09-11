@@ -23,11 +23,21 @@ export default function Modal(props) {
 	const [modalIsOpen, setModalIsOpen] = useState(false);
 	const [orientation, setOrientation] = useState('landscape');
 
+	const [isMobile, setIsMobile] = useState(false);
+
 	const inputRef = useRef();
 	const chooseBtnRef = useRef();
 
 	const observerTarget = useRef(null);
 	const observerTargetRoot = useRef();
+
+	useEffect(() => {
+		const innerWidth = window.innerWidth;
+
+		if (innerWidth <= 768) {
+			setIsMobile(true);
+		}
+	}, [isMobile]);
 
 	const openModal = function (e) {
 		setModalIsOpen(true);
@@ -131,8 +141,6 @@ export default function Modal(props) {
 						authorization: apiKey,
 					},
 				});
-
-				console.log('RESPONSE', res);
 
 				await handleResponse(res);
 			} catch (error) {
@@ -279,7 +287,8 @@ export default function Modal(props) {
 					ref={inputRef}
 					placeholder='e.g. Mountain ranges'
 					type='text'
-					className='bg-white text-black w-full h-12 border-b-[1px] border-purple focus:outline-none'
+					className='bg-white text-black w-full h-12 border-b-[1px] border-purple focus:outline-none rounded-none'
+					enterKeyHint='search'
 					autoFocus
 					onKeyDown={getImages}
 				/>
@@ -338,15 +347,27 @@ export default function Modal(props) {
 						className={
 							orientation === 'landscape'
 								? 'w-full grid grid-cols-2 gap-2'
-								: 'w-full grid grid-cols-4 gap-2'
+								: 'w-full grid grid-cols-3 gap-2'
 						}
 					>
 						{loadedImages.map((img) => (
 							<div
-								className={'relative w-full h-[5.5rem] cursor-pointer'}
-								onMouseEnter={(e) => {
-									setIsHovered(e.target.id);
-								}}
+								key={img.id}
+								className={
+									orientation === 'landscape'
+										? `relative w-full ${
+												!isMobile ? 'h-[5.5rem]' : 'h-[6.5rem]'
+										  } cursor-pointer`
+										: 'relative w-full h-[8rem] cursor-pointer'
+								}
+								// prevent mouse enter event when on mobile <= 768 inner width
+								onMouseEnter={
+									!isMobile
+										? (e) => {
+												setIsHovered(e.target.id);
+										  }
+										: null
+								}
 								onMouseLeave={(e) => {
 									setIsHovered('');
 								}}
