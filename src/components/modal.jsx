@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 export default function Modal(props) {
-	//const proxy = 'http://localhost:3000';
 	const proxy = 'https://www.w-imgr.com';
 
 	const apiKey = document
@@ -37,10 +36,6 @@ export default function Modal(props) {
 			setIsMobile(true);
 		}
 	}, [isMobile]);
-
-	useEffect(() => {
-		console.log('LOADED IMAGES: ', loadedImages.length, loadedImages);
-	}, [loadedImages]);
 
 	const openModal = function (e) {
 		setModalIsOpen(true);
@@ -96,7 +91,6 @@ export default function Modal(props) {
 	}, []);
 
 	const handleResponse = async function (res) {
-		console.log('Handling response');
 		if (res.status === 200) {
 			let images = await res.json();
 			if (images.results.length !== 0) {
@@ -104,8 +98,6 @@ export default function Modal(props) {
 				setLoadedImages((prevItems) => [...prevItems, ...images.results]);
 				setPage((prevPage) => prevPage + 1);
 				setImagesDisplayed(true);
-
-				console.log(images.results);
 			} else {
 				// Request approved and has no images for search query
 				setError('No results for your search, try something else.');
@@ -116,7 +108,6 @@ export default function Modal(props) {
 			setErrorCode(204);
 		} else if (res.status === 401) {
 			// Auth fail
-			console.log('fail!');
 			setError(
 				'*An API-Key is required to use W-IMGR. Please check if your key is present.'
 			);
@@ -141,7 +132,7 @@ export default function Modal(props) {
 
 			try {
 				const query = inputRef.current.value;
-				console.log(query);
+
 				setIsQuery(true);
 
 				let res = await fetch(`${proxy}/api/unsplash`, {
@@ -221,7 +212,6 @@ export default function Modal(props) {
 	const loadMore = useCallback(
 		(entries) => {
 			if (entries[0].isIntersecting && isQuery) {
-				//console.log('Is intersecting');
 				getMoreImages();
 				setPage((prevPage) => prevPage + 1);
 			}
